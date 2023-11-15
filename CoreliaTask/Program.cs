@@ -18,9 +18,10 @@ namespace CoreliaTask
 
             // Add services to the container.
             //HangFire
-            //builder.Services.AddHangfire(x => x.UseSqlServerStorage(builder.Configuration.GetConnectionString(name: "Con1")));
-            //builder.Services.AddHangfireServer();
+            builder.Services.AddHangfire(x => x.UseSqlServerStorage(builder.Configuration.GetConnectionString(name: "Con1")));
+            builder.Services.AddHangfireServer();
 
+            //SignalR
             builder.Services.AddSignalR();
 
             builder.Services.AddControllers();
@@ -34,7 +35,8 @@ namespace CoreliaTask
 
             builder.Services.AddCors(p => p.AddPolicy("corsapp", builder =>
             {
-                builder.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader();
+                builder.WithOrigins("http://localhost:4200").AllowAnyMethod().AllowAnyHeader()
+                .AllowCredentials();
             }));
             builder.Services.AddTransient<IUnitOfWork,UnitOfWork>();
             var app = builder.Build();
@@ -52,13 +54,11 @@ namespace CoreliaTask
             app.UseRouting();
             app.UseAuthorization();
 
-            //app.UseHangfireDashboard(pathMatch:"/dashboard") ;
+            app.UseHangfireDashboard(pathMatch:"/dashboard") ;
             app.UseEndpoints(endpoints =>
             {
-                endpoints.MapHub<NotifyHub>("/notificationHub");
-                endpoints.MapControllerRoute(
-                name: "default",
-                pattern: "{controller=Home}/{action=Index}/{id?}");
+                endpoints.MapHub<NotifyHub>("/notify");
+                
             });
 
             app.MapControllers();
