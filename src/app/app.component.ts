@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { IEmployee } from 'src/Shared/Interfaces/IEmployee';
 import { EmployeeServiceService } from 'src/Shared/Services/employee-service.service';
-import { HubConnectionBuilder } from '@microsoft/signalr';
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr';
 import { ToastrService } from 'ngx-toastr';
 @Component({
   selector: 'app-root',
@@ -25,25 +25,17 @@ export class AppComponent {
   }
   private initializeSignalR() {
     this.hubConnection = new HubConnectionBuilder()
-      .withUrl('https://localhost:7160/notificationHub', {
-        withCredentials: true,
-      })
+      .withUrl('https://localhost:7160/notify')
+      .configureLogging(LogLevel.Information)
       .build();
 
     this.hubConnection.start().then(() => {
       console.log('Hub connection started');
-
-      // Subscribe to the 'ReceiveNotification' event
-      this.hubConnection
-        .on('ReceiveNotification', (message: string) => {
-          // Handle the received notification (e.g., update the employee list)
-          console.log('Received Notification:', message);
-          this.refreshEmployeeList();
-          this.showNotification(message);
-        })
-        .catch((error: any) => {
-          console.error('Error starting hub connection:', error);
-        });
+      this.hubConnection.on('sendnotification', (message: string) => {
+        console.log('Received Notification:', message);
+        this.refreshEmployeeList();
+        this.showNotification(message);
+      });
     });
   }
   private refreshEmployeeList() {
